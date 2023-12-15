@@ -6,7 +6,7 @@
 #define CHUNK_SIZE 10
 //#define DEBUG
 
-template <class T, class Allocator = std::allocator<T> >
+template <typename T, class Allocator = std::allocator<T> >
 class my_vector {
 
 private:
@@ -43,31 +43,29 @@ public:
     }
 };
 
-template <class T>
-struct allocator_header
-{
-    typedef T value_type;
-    T *mem;
-    uint32_t size;
-    bool used_memory;
-};
-
-template <class T>
+template <typename T, std::size_t size = CHUNK_SIZE>
 struct simple_allocator {
-    typedef T value_type;
-    T start_mem_ptr[CHUNK_SIZE], *end_mem_ptr, *used_mem_ptr;
+private:
+    T start_mem_ptr[size], *end_mem_ptr, *used_mem_ptr;
     int pos = 0;
- 
-    simple_allocator()
-    {
-        end_mem_ptr = &start_mem_ptr[CHUNK_SIZE - 1];
+
+public:
+    using value_type = T;
+
+    simple_allocator() noexcept {
+        end_mem_ptr = &start_mem_ptr[size - 1];
         used_mem_ptr = start_mem_ptr;
     }
-    ~simple_allocator() {}
+    template <typename U, size_t size_other>
+    simple_allocator(const simple_allocator<U, size_other> &) = delete;
+    ~simple_allocator() = default;
+
+    template<class U>
+        struct rebind { using other =  simple_allocator<U, size>; };
 
     T* allocate(std::size_t n)
     {
-        if (pos + n > CHUNK_SIZE)
+        if (pos + n > size)
             throw std::bad_alloc();
 
 #ifdef DEBUG
@@ -81,24 +79,17 @@ struct simple_allocator {
     }
 
     void deallocate(T* ptr, std::size_t n) {}
+
+    template <typename U>
+    bool operator==(const simple_allocator<U>& other) {
+        return (void *) this->start_mem_ptr == (void *) other.start_mem_ptr;
+    }
+
+    template <typename U>
+    bool operator!=(const simple_allocator<U>& other) {
+        return (void *) this->start_mem_ptr != (void *) other.start_mem_ptr;;
+    }
 };
-
-template <class T, class U>
-bool operator==(const simple_allocator<T>&, const simple_allocator<U>&)
-{
-    return true;
-}
-
-template <class T, class U>
-bool operator!=(const simple_allocator<T>&, const simple_allocator<U>&)
-{
-    return false;
-}
-
-unsigned long long int fact(int n)
-{
-   return (n > 1) ? n * fact(n - 1) : 1;
-}
 
 int main()
 {
@@ -106,12 +97,12 @@ int main()
     simple_allocator<int> my_alloc2;
     std::allocator<int> std_alloc;
 
-    auto m_my_alloc = std::map<int, int, std::less<int>, simple_allocator<std::pair<const int, int>>>{};
+    std::map<int, int, std::less<int>, simple_allocator<std::pair<const int, int>>> m_my_alloc;
 
     my_vector<int, std::allocator<int>> v_std_alloc(9, std_alloc);
     my_vector<int, simple_allocator<int>> v_my_alloc(9, my_alloc2);
 
-    for(size_t i = 0; i < 10; ++i) {
+    for(auto i = 0; i < 10; ++i) {
         if (i == 0)
             m_my_alloc[i] = 1;
         else
@@ -119,7 +110,7 @@ int main()
     }
 
     std::cout << "map my_allocator: ";
-    for (const auto& [key, value] : m_my_alloc)
+    for (auto [key, value] : m_my_alloc)
         std::cout << '[' << key << "] = " << value << "; ";
     std::cout << std::endl;
 
