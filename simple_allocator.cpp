@@ -3,6 +3,7 @@
 #include <map>
 #include <cstring>
 #include <stdint.h>
+#include <utility>
 
 #define CHUNK_SIZE 10
 //#define DEBUG
@@ -48,7 +49,7 @@ template <typename T, std::size_t size = CHUNK_SIZE>
 struct simple_allocator {
 private:
     T start_mem_ptr[size], *end_mem_ptr, *used_mem_ptr;
-    int pos = 0;
+    std::size_t pos = 0;
 
 public:
     using value_type = T;
@@ -79,7 +80,7 @@ public:
         return mem;
     }
 
-    void deallocate(T* ptr, std::size_t n) {}
+    void deallocate(T*, std::size_t) {}
 
     template <typename U>
     bool operator==(const simple_allocator<U>& other) {
