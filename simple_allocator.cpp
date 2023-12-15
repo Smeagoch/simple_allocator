@@ -2,6 +2,7 @@
 #include <vector>
 #include <map>
 #include <cstring>
+#include <stdint.h>
 
 #define CHUNK_SIZE 10
 //#define DEBUG
