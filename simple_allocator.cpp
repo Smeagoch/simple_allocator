@@ -4,7 +4,7 @@
 #include <cstring>
 
 #define CHUNK_SIZE 10
-#define DEBUG
+//#define DEBUG
 
 template <class T, class Allocator = std::allocator<T> >
 class my_vector {
@@ -98,14 +98,6 @@ bool operator!=(const simple_allocator<T>&, const simple_allocator<U>&)
 unsigned long long int fact(int n)
 {
    return (n > 1) ? n * fact(n - 1) : 1;
-}
-
-void print_map(const std::map<int, int>& m)
-{
-    for (const auto& [key, value] : m)
-        std::cout << '[' << key << "] = " << value << "; ";
- 
-    std::cout << '\n';
 }
 
 int main()
